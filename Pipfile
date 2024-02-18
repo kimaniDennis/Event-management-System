@@ -4,8 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+jwt = "*"
+flask-jwt-extended = "*"
+flask-wtf = "*"
+wtforms = "*"
+flask-restful = "*"
+bcrypt = "*"
+flask-restplus = "*"
+sqlalchemy-serializer = "*"
+flask-migrate = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.9.6"
