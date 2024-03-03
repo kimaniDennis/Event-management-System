@@ -151,52 +151,55 @@ class EventResource(Resource):
             else:
                 print("Event not found")
 
-    def post(self):
-        data = request.get_json()
-        new_event = Event(
-            event_name=data['event_name'],
-            date=data['date'],
-            time=data['time'],
-            location=data['location'],
-            description=data['description'],
-            organizer_id=data['organizer_id']
-        )
-        db.session.add(new_event)
-        db.session.commit()
-        return jsonify({'message': 'Event created successfully'}), 201
-
+ 
 class EventByID(Resource):
     def get(self, event_id):
         event = Event.query.get_or_404(event_id)
-        event_data = {
-            'event_id': event.id,
-            'event_name': event.event_name,
-            'date': event.date,
-            'time': event.time,
-            'location': event.location,
-            'description': event.description,
-            'organizer_id': event.organizer_id
-        }
-        return jsonify({'event': event_data}), 200
 
-    def put(self, event_id):
+        if event:
+            event_data = {
+                'event_id': event.id,
+                'event_name': event.event_name,
+                'date': event.date,
+                'time': event.time.strftime('%H:%M:%S'),  # Convert time to string
+                'location': event.location,
+                'description': event.description,
+                'organizer_id': event.organizer_id
+            }
+
+            response = make_response(
+                jsonify({'event': event_data}),
+                200
+            )
+        else:
+            response = make_response(
+                jsonify({"error": "Event not found"}),
+                404
+            )
+
+        return response
+    def patch(self, event_id):
         event = Event.query.get_or_404(event_id)
         data = request.get_json()
-        event.event_name = data['event_name']
-        event.date = data['date']
-        event.time = data['time']
-        event.location = data['location']
-        event.description = data['description']
-        event.organizer_id = data['organizer_id']
+
+        # Update event attributes if provided in the patch request
+        if 'event_name' in data:
+            event.event_name = data['event_name']
+        if 'date' in data:
+            event.date = data['date']
+        if 'time' in data:
+            event.time = data['time']
+        if 'location' in data:
+            event.location = data['location']
+        if 'description' in data:
+            event.description = data['description']
+        if 'organizer_id' in data:
+            event.organizer_id = data['organizer_id']
+
         db.session.commit()
         return jsonify({'message': 'Event updated successfully'}), 200
+       
 
-    def delete(self, event_id):
-        event = Event.query.get_or_404(event_id)
-        db.session.delete(event)
-        db.session.commit()
-        return jsonify({'message': 'Event deleted successfully'}), 200
-    
 api.add_resource(SignupResource, "/signup")
 api.add_resource(LoginResource, "/login")
 api.add_resource(LogoutResource, "/logout")
