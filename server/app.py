@@ -225,83 +225,59 @@ def get_rsvps():
             rsvp_list.append(rsvp_data)
             return jsonify(rsvp_list),200
         
-class RSVPByID(Resource):
-    def get(self, id=None):
-        if id:
-            RSVP = RSVP.query.get(id)
-
-            if RSVP:
-                RSVP_dict = {
-                    "id": RSVP.id,
-                    "user_id": RSVP.user.id,
-                    "event_id": RSVP.event.id,
-                    "status": RSVP.status,
-                    "timestamp": RSVP.timestamp,
-                }
-                response = make_response(jsonify(RSVP_dict), 200)
-            else:
-                response = make_response(jsonify({"error": "RSVP not found"}), 404)
-        else:
-            RSVP = []
-            for RSVP in RSVP.query.all():
-                rsvp_dict = {
-                    "id": RSVP.id,
-                    "user_id": RSVP.user.id,
-                    "event_id": RSVP.event.id,
-                    "status": RSVP.status,
-                    "timestamp": RSVP.timestamp,
-                }
-                RSVP.append(rsvp_dict)
-
-            response = make_response(jsonify(RSVP), 200)
-        return response
-
-        
-    def patch(self,id):
-        RSVP = RSVP.query.get(id)
-
-        if RSVP:
-            parser = reqparse.RequestParser()
-            parser.add_argument('status', type=str, help = 'Status of the RSVP')
-            parser.add_argument('timestamp',type=datetime, help='Time of the RSVP')
-
-            args = parser.parse_args()
-
-            if args['status']:
-                RSVP.status = args['status']
-            if args['timestamp']:
-                RSVP.timestamp = args["timestamp"]
-
-            db.session.commit()
-            return {'message':'RSVP updated successfully'}, 200
-        else:
-            return {'message':'RSVP not found'}, 404
-        
-    def post(self, id):
-        data = request.json
-        if data:
-            new_RSVP = RSVP(
-                user_id=data["user_id"],
-                event_id=data["event_id"],
-                status=data["status"],
-                timestamp=data["timestamp"]
-            )
-            db.session.add(new_RSVP)
-            db.session.commit()
-            response = make_response(jsonify({"message": "New event added to db"}), 201)
-            return response
-        else:
-            return make_response(jsonify({"error": "No data provided"}), 400)
-        
-    def delete(self,id):
-        rsvp = RSVP.query.get(id)
-
+@app.route('/rsvp/<int:rsvp_id>', methods = ['GET'])
+def get_rsvp(rsvp_id):
+        rsvp = RSVP.query.get(rsvp_id)
         if rsvp:
-            db.session.delete(RSVP)
-            db.session.commit()
-            return {'message':'RSVP deleted successfully'}, 200
+            rsvp_data = {
+                "id":rsvp.id,
+                "user_id":rsvp.user.id,
+                "event_id":rsvp.event.id,
+                "status":rsvp.status,
+                "timestamp":rsvp.timestamp,
+            }
+            return jsonify(rsvp_data), 200
         else:
-            return {'message':'RSVP not found'}, 404
+            return jsonify({"error":"Event not found"}), 404
+        
+@app.route('/rsvp', methods=['POST'])
+def add_rsvp():
+    data = request.get_json()
+    print("Received JSON data:", data)
+    user_id = data.get('user_id', None)
+    event_id = data.get('event_id', None)
+    status = data.get('status', None)
+    timestamp_str = data.get('timestamp', None)
+    if user_id and event_id and status and timestamp_str is not None:
+        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+        new_rsvp = RSVP(user_id=user_id, event_id=event_id, status=status, timestamp=timestamp)
+        db.session.add(new_rsvp)
+        db.session.commit()
+        return jsonify(message='RSVP added successfully'), 201
+    else:
+        return jsonify(message='RSVP not added'), 400
+    
+@app.route('/rsvp/<int:rsvp_id>', methods = ['PUT'])
+def upgrade_rsvp(rsvp_id):
+    rsvp = RSVP.query.get(rsvp_id)
+    if rsvp:
+        data = request.json
+        status = data.get('status',rsvp.status)
+        rsvp.status = status
+        db.session.commit()
+        return jsonify({"message":"RSVP updated successfully!"}), 200
+    else:
+        return jsonify({"error":"RSVP not found"}), 404
+    
+@app.route('/rsvp/<int:rsvp_id>', methods = ['DELETE'])
+def delete_rsvp(rsvp_id):
+    rsvp = RSVP.query.get(rsvp_id)
+    if rsvp:
+        db.session.delete(rsvp)
+        db.session.commit()
+        return jsonify({"message": "RSVP delete successfully!!"}), 200
+    else:
+        return jsonify({"error":"RSVP not found!!"}), 404
         
 def send_email_notification(sender_email, sender_password, receiver_email, subject, message):
     smtp_server = "smtp.gmail.com"  # Replace with your SMTP server
