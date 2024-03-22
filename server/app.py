@@ -16,6 +16,9 @@ from flask_restful import reqparse
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 
 app = Flask(__name__)
@@ -107,55 +110,27 @@ class CheckSessionResource(Resource):
 
 
 
-class EventResource(Resource):
-    def get(self, event_id=None):
-        if event_id is None:
-            # Fetch all events
-            events = Event.query.all()
-            events_dict = [
-                {
+@app.route('/events', methods=['GET'])
+def get_events():
+        events = Event.query.all()
+        event_list = []
+        for event in events:
+            event_data ={
                     'event_id': event.id,
                     'event_name': event.event_name,
                     'date': event.date,
-                    'time': event.time.strftime('%H:%M:%S'),  # Convert time to string
-                    'location': event.location,
-                    'description': event.description,
-                    'organizer_id': event.organizer_id
-                } for event in events
-            ]
-
-            if events_dict:
-                response = make_response(
-                    jsonify(events_dict), 200
-                )
-                return response
-            else:
-                print("No data")
-        else:
-            # Fetch a specific event by ID
-            event = Event.query.get(event_id)
-            if event:
-                event_dict = {
-                    'event_id': event.id,
-                    'event_name': event.event_name,
-                    'date': event.date,
-                    'time': event.time.strftime('%H:%M:%S'),  # Convert time to string
+                    'time': event.time.strftime('%H:%M:%S'),  
                     'location': event.location,
                     'description': event.description,
                     'organizer_id': event.organizer_id
                 }
-                response = make_response(
-                    jsonify(event_dict), 200
-                )
-                return response
-            else:
-                print("Event not found")
+            event_list.append(event_data)
+            return jsonify(event_list), 200
 
- 
-class EventByID(Resource):
-    def get(self, event_id):
-        event = Event.query.get_or_404(event_id)
 
+@app.route('/event/<int:event_id>', methods = ['GET'])
+def get_event(event_id):
+        event = Event.query.get(event_id)
         if event:
             event_data = {
                 'event_id': event.id,
@@ -166,39 +141,206 @@ class EventByID(Resource):
                 'description': event.description,
                 'organizer_id': event.organizer_id
             }
-
-            response = make_response(
-                jsonify({'event': event_data}),
-                200
-            )
+            return jsonify(event_data),200
         else:
-            response = make_response(
-                jsonify({"error": "Event not found"}),
-                404
+            return jsonify({"error": "Event not found"}), 404
+
+
+@app.route('/event', methods=['POST'])
+def add_event():
+    data = request.get_json()
+    print("Received JSON data:", data)
+    
+    event_name = data.get('event_name', None)
+    location = data.get('location', None)
+    description = data.get('description', None)
+    organizer_id = data.get('organizer_id', None)
+    date_str = data.get('date', None)
+    time_str = data.get('time', None)
+
+    if event_name and location and description and organizer_id is not None and date_str and time_str is not None:
+        try:
+            # Convert date string to Python date object
+            event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+            # Combine date and time into a datetime object
+            event_datetime = datetime.strptime(date_str + ' ' + time_str, '%Y-%m-%d %H:%M:%S')
+
+            new_event = Event(
+                event_name=event_name,
+                location=location,
+                description=description,
+                organizer_id=organizer_id,
+                date=event_date,
+                time=event_datetime.time()
             )
+            db.session.add(new_event)
+            db.session.commit()
+            return jsonify(message='Event added successfully!'), 201
+        except Exception as e:
+            print("Error:", e)
+            return jsonify(message='Error adding event'), 500
+    else:
+        return jsonify(message='Event not added! Missing required data.'), 400
 
-        return response
-    def patch(self, event_id):
-        event = Event.query.get_or_404(event_id)
-        data = request.get_json()
 
-        # Update event attributes if provided in the patch request
-        if 'event_name' in data:
-            event.event_name = data['event_name']
-        if 'date' in data:
-            event.date = data['date']
-        if 'time' in data:
-            event.time = data['time']
-        if 'location' in data:
-            event.location = data['location']
-        if 'description' in data:
-            event.description = data['description']
-        if 'organizer_id' in data:
-            event.organizer_id = data['organizer_id']
-
+@app.route('/event/<int:event_id>', methods = ['PUT'])
+def update_event(event_id):
+    event = Event.query.get(event_id)
+    if event:
+        data = request.json
+        event.event_name = data.get('event_name', event.event_name)
+        event.location = data.get('location', event.location)
+        event.description = data.get('description', event.description)
         db.session.commit()
-        return jsonify({'message': 'Event updated successfully'}), 200
-       
+        return jsonify({"message": "Event updated successfully!"}), 200
+    else:
+        return jsonify({"error": "Event not found"}),404
+    
+
+@app.route('/event/<int:event_id>', methods = ['DELETE'])
+def delete_event(event_id):
+    event = Event.query.get(event_id)
+    if event:
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({"message": "Event deleted successfully"}), 200
+    else:
+        return jsonify({"error":"Event not found"}), 404
+    
+
+
+@app.route('/rsvps', methods=['GET'])
+def get_rsvps():
+    rsvps = RSVP.query.all()   
+    rsvp_list = []
+    for rsvp in rsvps:
+            rsvp_data = {
+                "id":rsvp.id,
+                "user_id":rsvp.user.id,
+                "event_id":rsvp.event.id,
+                "status":rsvp.status,
+                "timestamp":rsvp.timestamp,
+            }
+            rsvp_list.append(rsvp_data)
+            return jsonify(rsvp_list),200
+        
+class RSVPByID(Resource):
+    def get(self, id=None):
+        if id:
+            RSVP = RSVP.query.get(id)
+
+            if RSVP:
+                RSVP_dict = {
+                    "id": RSVP.id,
+                    "user_id": RSVP.user.id,
+                    "event_id": RSVP.event.id,
+                    "status": RSVP.status,
+                    "timestamp": RSVP.timestamp,
+                }
+                response = make_response(jsonify(RSVP_dict), 200)
+            else:
+                response = make_response(jsonify({"error": "RSVP not found"}), 404)
+        else:
+            RSVP = []
+            for RSVP in RSVP.query.all():
+                rsvp_dict = {
+                    "id": RSVP.id,
+                    "user_id": RSVP.user.id,
+                    "event_id": RSVP.event.id,
+                    "status": RSVP.status,
+                    "timestamp": RSVP.timestamp,
+                }
+                RSVP.append(rsvp_dict)
+
+            response = make_response(jsonify(RSVP), 200)
+        return response
+
+        
+    def patch(self,id):
+        RSVP = RSVP.query.get(id)
+
+        if RSVP:
+            parser = reqparse.RequestParser()
+            parser.add_argument('status', type=str, help = 'Status of the RSVP')
+            parser.add_argument('timestamp',type=datetime, help='Time of the RSVP')
+
+            args = parser.parse_args()
+
+            if args['status']:
+                RSVP.status = args['status']
+            if args['timestamp']:
+                RSVP.timestamp = args["timestamp"]
+
+            db.session.commit()
+            return {'message':'RSVP updated successfully'}, 200
+        else:
+            return {'message':'RSVP not found'}, 404
+        
+    def post(self, id):
+        data = request.json
+        if data:
+            new_RSVP = RSVP(
+                user_id=data["user_id"],
+                event_id=data["event_id"],
+                status=data["status"],
+                timestamp=data["timestamp"]
+            )
+            db.session.add(new_RSVP)
+            db.session.commit()
+            response = make_response(jsonify({"message": "New event added to db"}), 201)
+            return response
+        else:
+            return make_response(jsonify({"error": "No data provided"}), 400)
+        
+    def delete(self,id):
+        rsvp = RSVP.query.get(id)
+
+        if rsvp:
+            db.session.delete(RSVP)
+            db.session.commit()
+            return {'message':'RSVP deleted successfully'}, 200
+        else:
+            return {'message':'RSVP not found'}, 404
+        
+def send_email_notification(sender_email, sender_password, receiver_email, subject, message):
+    smtp_server = "smtp.gmail.com"  # Replace with your SMTP server
+    port = 587  
+    sender_name = "Event Brite"  
+    
+    msg = MIMEMultipart()
+    msg['From'] = f"{sender_name} <{sender_email}>"
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    
+    msg.attach(MIMEText(message, 'plain'))
+    
+    try:
+        server = smtplib.SMTP(smtp_server, port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        text = msg.as_string()
+        server.sendmail(sender_email, receiver_email, text)
+        print("Notification email sent successfully!")
+    except Exception as e:
+        print("An error occurred while sending the notification email:", str(e))
+    finally:
+        server.quit()
+
+class SendNotification(Resource):
+    def post(self):
+        sender_email = "your-email@example.com"
+        sender_password = "your-email-password"
+        data = request.get_json()
+        receiver_email = data.get('receiver_email')
+        subject = "Notification from Your Application"
+        message = "Hello,\n\nThis is a notification from your application. Have a great day!"
+        
+        send_email_notification(sender_email, sender_password, receiver_email, subject, message)
+        return {"message": "Notification sent successfully"}, 200
+
+
+
 
 api.add_resource(SignupResource, "/signup")
 api.add_resource(LoginResource, "/login")
@@ -206,8 +348,9 @@ api.add_resource(LogoutResource, "/logout")
 api.add_resource(PublicResource, "/public")
 api.add_resource(AuthResource, "/auth")
 api.add_resource(CheckSessionResource, "/checksession")
-api.add_resource(EventResource, '/events')
-api.add_resource(EventByID, '/events/<int:event_id>')
+
+
+api.add_resource(SendNotification, '/send_notification')
 
 
 if __name__ == '__main__':

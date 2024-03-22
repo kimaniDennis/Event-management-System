@@ -1,4 +1,5 @@
 
+import Home from './Components/Home/Home'
 import './App.css'
 
 function App() {
@@ -6,7 +7,7 @@ function App() {
 
   return (
     <>
-      
+      <Home />
     </>
   )
 }
