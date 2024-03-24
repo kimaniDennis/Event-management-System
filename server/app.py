@@ -34,6 +34,8 @@ bcrypt = Bcrypt(app)
 api = Api(app)
 migrate = Migrate(app, db)
 CORS(app)
+
+
 class SignupResource(Resource):
     def post(self):
         # Parse incoming JSON data
