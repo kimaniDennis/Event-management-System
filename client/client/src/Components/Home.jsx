@@ -1,6 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function Home() {
+
+
   return (
     <div>
       <header className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
@@ -8,14 +11,16 @@ function Home() {
           <div className="text-center">
             <h1 className="text-5xl font-bold mb-4">EventElevate</h1>
             <p className="text-lg text-gray-200 mb-6">Welcome to EventElevate, where seamless event management meets innovation, creating unforgettable experiences every time.</p>
-            <button className="bg-white text-blue-500 px-8 py-3 rounded-full font-semibold hover:bg-blue-400 hover:text-white transition duration-300">Start Now</button>
+            {/* Attach handleStartNow function to onClick event */}
+            <button  className="bg-white text-blue-500 px-8 py-3 rounded-full font-semibold hover:bg-blue-400 hover:text-white transition duration-300">Start Now
+            <Link to='/signup'></Link>
+            </button>
           </div>
         </div>
       </header>
-
       <section className="py-12">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-6">See Upcoming Events</h2>
+          <h2 className="text-3xl font-bold mb-6 ">See Upcoming Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white shadow-lg rounded-lg overflow-hidden">
               <img src="/src/Images/concert.jpg" alt="concert" className="w-full h-64 object-cover object-center" />

@@ -6,6 +6,7 @@ function Signup() {
     email: '',
     password: ''
   });
+  const [signupSuccess, setSignupSuccess] = useState(false); // State to track signup success
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,7 +16,7 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const response = await fetch(' http://127.0.0.1:5555/signup', {
+      const response = await fetch('http://127.0.0.1:5555/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -27,19 +28,23 @@ function Signup() {
         throw new Error('Signup failed');
       }
 
-      const data = await response.json();
-      console.log('Signup successful:', data);
+      // Set signup success state to true
+      setSignupSuccess(true);
     } catch (error) {
       console.error('Error:', error.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 w-full">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create an account</h2>
         </div>
+
+        {signupSuccess && (
+          <p className="text-green-600 text-center">Signup successful! You can now log in.</p>
+        )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <input
             type="text"
