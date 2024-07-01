@@ -8,7 +8,7 @@ with app.app_context():
     db.create_all()
 
     # List of user data to insert into the database
-    users_data = [
+    users = [
         {'username': 'User1', 'email': 'user1@gmail.com', 'password': '123456'},
         {'username': 'User2', 'email': 'user2@gmail.com', 'password': '123456'},
         {'username': 'User3', 'email': 'user3@gmail.com', 'password': '123456'},
@@ -16,7 +16,7 @@ with app.app_context():
         {'username': 'User5', 'email': 'user5@gmail.com', 'password': '123456'}
     ]
 
-    for user_data in users_data:
+    for user_data in users:
         # Check if the username already exists
         existing_user = User.query.filter_by(username=user_data['username']).first()
         if existing_user:
@@ -30,20 +30,11 @@ with app.app_context():
     db.session.commit()
 
     # Create some events
-    events_data = [
-        {'organizer_id': 1, 'event_name': 'Dennis', 'date': datetime.now(), 'time': datetime.now().time(),
-         'location': 'Uhuru Gardens', 'description': 'Wakadinali Concert'},
-        {'organizer_id': 2, 'event_name': 'Tracy', 'date': datetime.now(), 'time': datetime.now().time(),
-         'location': 'Oak Place', 'description': 'Meet and Greet'},
-        {'organizer_id': 3, 'event_name': 'Tevin', 'date': datetime.now(), 'time': datetime.now().time(),
-         'location': 'Sarit Center', 'description': 'Gamers and Inventors Festival'},
-        {'organizer_id': 4, 'event_name': 'Alex', 'date': datetime.now(), 'time': datetime.now().time(),
-         'location': 'Quiver Hq', 'description': 'HipHop and R&B gig'},
-        {'organizer_id': 5, 'event_name': 'Abby', 'date': datetime.now(), 'time': datetime.now().time(),
-         'location': 'Water Front', 'description': 'Cooking Show'}
+    events = [
+        {"event_name":"Cookie's Cook out", "location":"Baricho rd", "description":"A block party", "organizer_id":"12"}
     ]
 
-    for event_data in events_data:
+    for event_data in events:
         new_event = Event(**event_data)
         db.session.add(new_event)
 

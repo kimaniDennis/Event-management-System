@@ -120,8 +120,6 @@ def get_events():
             event_data ={
                     'event_id': event.id,
                     'event_name': event.event_name,
-                    'date': event.date,
-                    'time': event.time.strftime('%H:%M:%S'),  
                     'location': event.location,
                     'description': event.description,
                     'organizer_id': event.organizer_id
@@ -137,8 +135,6 @@ def get_event(event_id):
             event_data = {
                 'event_id': event.id,
                 'event_name': event.event_name,
-                'date': event.date,
-                'time': event.time.strftime('%H:%M:%S'),  # Convert time to string
                 'location': event.location,
                 'description': event.description,
                 'organizer_id': event.organizer_id
@@ -151,39 +147,20 @@ def get_event(event_id):
 @app.route('/event', methods=['POST'])
 def add_event():
     data = request.get_json()
-    print("Received JSON data:", data)
-    
+    print("Received JSON data",data)
     event_name = data.get('event_name', None)
-    location = data.get('location', None)
+    location = data.get('location',None)
     description = data.get('description', None)
     organizer_id = data.get('organizer_id', None)
-    date_str = data.get('date', None)
-    time_str = data.get('time', None)
 
-    if event_name and location and description and organizer_id is not None and date_str and time_str is not None:
-        try:
-            # Convert date string to Python date object
-            event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-
-            # Combine date and time into a datetime object
-            event_datetime = datetime.strptime(date_str + ' ' + time_str, '%Y-%m-%d %H:%M:%S')
-
-            new_event = Event(
-                event_name=event_name,
-                location=location,
-                description=description,
-                organizer_id=organizer_id,
-                date=event_date,
-                time=event_datetime.time()
-            )
-            db.session.add(new_event)
-            db.session.commit()
-            return jsonify(message='Event added successfully!'), 201
-        except Exception as e:
-            print("Error:", e)
-            return jsonify(message='Error adding event'), 500
+    if event_name and location and description and organizer_id is not None:
+        new_event = Event(event_name=event_name, location=location,description=description,organizer_id=organizer_id)
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify(message='Event added successfully!'),201
     else:
-        return jsonify(message='Event not added! Missing required data.'), 400
+        return jsonify(message='Event not added! Something is wrong!'),400
+
 
 
 @app.route('/event/<int:event_id>', methods = ['PUT'])
