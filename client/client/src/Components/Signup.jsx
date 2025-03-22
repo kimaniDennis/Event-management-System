@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -6,7 +7,8 @@ function Signup() {
     email: '',
     password: ''
   });
-  const [signupSuccess, setSignupSuccess] = useState(false); // State to track signup success
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate(); // Initialize navigation
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,14 +26,18 @@ function Signup() {
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) {
-        throw new Error('Signup failed');
-      }
+      const data = await response.json();
 
-      // Set signup success state to true
-      setSignupSuccess(true);
+      if (response.ok) {
+        // Successful signup → Redirect to EventForm page
+        navigate('/eventform');
+      } else {
+        // If signup fails (e.g., user already exists)
+        setErrorMessage(data.message || 'Signup failed');
+      }
     } catch (error) {
       console.error('Error:', error.message);
+      setErrorMessage('Something went wrong. Please try again.');
     }
   };
 
@@ -42,9 +48,10 @@ function Signup() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create an account</h2>
         </div>
 
-        {signupSuccess && (
-          <p className="text-green-600 text-center">Signup successful! You can now log in.</p>
+        {errorMessage && (
+          <p className="text-red-600 text-center">{errorMessage}</p>
         )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <input
             type="text"
@@ -80,6 +87,14 @@ function Signup() {
             Signup
           </button>
         </form>
+
+        {/* Already have an account? Link */}
+        <p className="text-center text-gray-600">
+          Already have an account?{' '}
+          <Link to="/login" className="text-indigo-600 hover:underline">
+            Log in here
+          </Link>
+        </p>
       </div>
     </div>
   );

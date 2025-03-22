@@ -5,8 +5,9 @@ import Login from './Components/Login'
 import Signup from './Components/Signup'
 import Sidebar from './Components/Sidebar'
 import Dashboard from './Components/Dashboard'
-import Eventdetails from './Components/EventDetails'
-import Eventform from './Components/EventForm'
+import Eventform from './Components/Eventform'
+
+
 
 function App() {
  return (
@@ -15,10 +16,10 @@ function App() {
         <Route path="/" element={<Home  />} />
        <Route path="/login" element={<Login  />} />
         <Route path="/signup" element={<Signup  />} />
-        <Route path='/eventdetails' element={<Eventdetails />} />
+        <Route path='/eventform' element={<Eventform />} />
         <Route path='/sidebar' element={<Sidebar />} />
         <Route path='/dashboard' element={<Dashboard />} />
-        <Route path='/eventform' element={<Eventform />} />
+       
       </Routes>
     </Router>
   );
