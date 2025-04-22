@@ -45,7 +45,7 @@ function Login() {
           setMessage('Login successful! Redirecting...');
           
           // Delay navigation to ensure token is saved
-          setTimeout(() => navigate('/eventform'), 1000);
+          setTimeout(() => navigate('/welcome'), 1000);
         } else {
           console.error('Failed to store token in localStorage!');
           setMessage('Login successful, but token storage failed. Try again.');

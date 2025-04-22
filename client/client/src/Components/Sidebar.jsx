@@ -1,34 +1,31 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaSignInAlt } from "react-icons/fa";
-import { MdSpaceDashboard } from "react-icons/md";
-import { LuLogIn } from "react-icons/lu";
-import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 
 function Sidebar() {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-    };
-
-    const closeSidebar = () => {
-        setIsOpen(false);
-    };
-
-    return (
-        <div className='fixed z-50 bg-white md:flex md:fixed md:flex-col md:items-center md:h-screen md:border md:border-r-1 w-[180px] md:float-left md:border-gray-200 md:shadow-md'>
-          <div className='mt-3 ml-3 w-[0px] md:hidden'>
-                <button onClick={toggleSidebar} className='color-none'>
-                    {!isOpen ? <AiOutlineMenu /> : <AiOutlineClose />}
-                    </button>
-          </div>
-
-          <div onClick={closeSidebar}>
-
-          </div>
-        </div>
-    );
+  return (
+    <div className="bg-indigo-700 text-white min-h-screen p-6 w-full">
+      <h2 className="text-2xl font-bold mb-6">EventElevate</h2>
+      <ul className="space-y-4">
+        <li>
+          <Link to="/dashboard" className="hover:text-gray-300">Dashboard</Link>
+        </li>
+        <li>
+          <Link to="/eventform" className="hover:text-gray-300">Create Event</Link>
+        </li>
+        <li>
+          <Link to="/login" className="hover:text-gray-300">Login</Link>
+        </li>
+        <li>
+          <Link to="/signup" className="hover:text-gray-300">Signup</Link>
+        </li>
+        <li>
+          <Link to="/logout" className="hover:text-gray-300">Logout</Link>
+        </li>
+        <li>
+          <Link to="/logout" className="hover:text-gray-300">Settings</Link>
+        </li>
+      </ul>
+    </div>
+  );
 }
 
 export default Sidebar;

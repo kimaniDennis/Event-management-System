@@ -6,6 +6,9 @@ import Signup from './Components/Signup'
 import Sidebar from './Components/Sidebar'
 import Dashboard from './Components/Dashboard'
 import Eventform from './Components/Eventform'
+import Welcome from './Components/Welcome'
+import Logout from './Components/Logout'
+import Settings from './Components/Settings'
 
 
 
@@ -19,6 +22,9 @@ function App() {
         <Route path='/eventform' element={<Eventform />} />
         <Route path='/sidebar' element={<Sidebar />} />
         <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='/welcome' element={<Welcome />} />
+        <Route path='/logout' element={<Logout />} />
+        <Route path='/settings' element={<Settings />} />
        
       </Routes>
     </Router>

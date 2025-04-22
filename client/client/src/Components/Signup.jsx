@@ -29,8 +29,8 @@ function Signup() {
       const data = await response.json();
 
       if (response.ok) {
-        // Successful signup → Redirect to EventForm page
-        navigate('/eventform');
+        // Successful signup → Redirect to Welcome page
+        navigate('/welcome');
       } else {
         // If signup fails (e.g., user already exists)
         setErrorMessage(data.message || 'Signup failed');

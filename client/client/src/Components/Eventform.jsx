@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Import useNavigate
 
 function EventForm() {
   const [formData, setFormData] = useState({
@@ -11,12 +12,14 @@ function EventForm() {
   const [message, setMessage] = useState("");
   const [token, setToken] = useState("");
 
+  const navigate = useNavigate(); // ✅ Initialize navigate
+
   // Retrieve the token from localStorage on component mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) {
       setToken(storedToken);
-      console.log("Token retrieved:", storedToken); // Debugging
+      console.log("Token retrieved:", storedToken);
     } else {
       console.warn("No token found in localStorage");
     }
@@ -52,7 +55,10 @@ function EventForm() {
       const data = await response.json();
       if (response.ok) {
         setMessage("Event created successfully!");
-        setFormData({ eventName: "", location: "", description: "" }); // Clear form
+        setFormData({ eventName: "", location: "", description: "" });
+
+        // ✅ Redirect to dashboard
+        navigate("/dashboard");
       } else {
         setMessage(`Failed to create event: ${data.message || "Unknown error"}`);
       }
@@ -89,7 +95,7 @@ function EventForm() {
       if (response.ok) {
         setMessage("Event updated successfully!");
         setIsEditing(false);
-        setFormData({ eventName: "", location: "", description: "" }); // Reset form
+        setFormData({ eventName: "", location: "", description: "" });
       } else {
         setMessage(`Failed to update event: ${data.message || "Unknown error"}`);
       }
